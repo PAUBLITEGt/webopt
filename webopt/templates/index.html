@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel OTP Pro</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body { font-family: 'Inter', 'Segoe UI', Roboto, sans-serif; background: #060606; color: #fff; margin: 0; padding: 10px; overflow-x: hidden; line-height: 1.5; }
+        .header { 
+            text-align: center; 
+            margin-bottom: 30px; 
+            padding: 30px 15px; 
+            border-bottom: 2px solid #00e5ff; 
+            background: linear-gradient(180deg, rgba(0,229,255,0.1) 0%, rgba(0,0,0,0) 100%);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .header h1 { 
+            color: #00e5ff; 
+            font-size: clamp(1.8rem, 8vw, 3rem); 
+            text-shadow: 0 0 20px rgba(0,229,255,0.6); 
+            font-weight: 900; 
+            letter-spacing: 2px; 
+            margin: 0; 
+            text-transform: uppercase; 
+        }
+        .creator-tag { 
+            color: #fff; 
+            font-size: clamp(1rem, 5vw, 1.4rem); 
+            font-weight: 800; 
+            letter-spacing: 3px; 
+            margin-top: 10px; 
+            text-transform: uppercase; 
+            opacity: 0.9;
+        }
+        .container { max-width: 900px; margin: 0 auto; width: 100%; display: grid; gap: 15px; }
+        
+        .card { 
+            background: rgba(21, 21, 21, 0.8); 
+            backdrop-filter: blur(10px);
+            border-radius: 15px; 
+            padding: 15px; 
+            border-left: 6px solid #00e5ff; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); 
+            animation: cardAppear 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        @media (min-width: 768px) {
+            .card { padding: 30px; border-left-width: 10px; border-radius: 20px; }
+            .container { gap: 20px; }
+        }
+
+        @keyframes cardAppear {
+            from { transform: scale(0.8) translateY(50px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .card-header { display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px; }
+        @media (min-width: 600px) {
+            .card-header { flex-direction: row; justify-content: space-between; align-items: flex-start; }
+        }
+
+        .sender { font-weight: 800; color: #fff; font-size: clamp(1rem, 5vw, 1.4rem); text-transform: uppercase; word-break: break-all; }
+        .account { color: #00e5ff; font-size: 0.85rem; opacity: 0.8; word-break: break-all; }
+        .subject { color: #aaa; font-size: 0.9rem; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        
+        .otp-box { 
+            background: #000; 
+            border-radius: 12px; 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            gap: 15px;
+            border: 1px solid #333; 
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        @media (min-width: 600px) {
+            .otp-box { flex-direction: row; justify-content: space-between; padding: 25px; border-radius: 15px; }
+        }
+        
+        .otp-code { 
+            font-family: 'Monaco', 'Consolas', monospace; 
+            font-size: clamp(2rem, 10vw, 4.5rem); 
+            font-weight: 900; 
+            color: #f9d423; 
+            letter-spacing: clamp(2px, 2vw, 8px); 
+            text-shadow: 0 0 15px rgba(249,212,35,0.5); 
+            animation: pulse 2s infinite;
+            line-height: 1;
+            word-break: break-all;
+            text-align: center;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); text-shadow: 0 0 15px rgba(249,212,35,0.5); }
+            50% { transform: scale(1.02); text-shadow: 0 0 30px rgba(249,212,35,0.8); }
+            100% { transform: scale(1); text-shadow: 0 0 15px rgba(249,212,35,0.5); }
+        }
+
+        .btn-copy { 
+            background: linear-gradient(135deg, #00e5ff, #00b8d4); 
+            color: #000; 
+            border: none; 
+            padding: 12px 24px; 
+            border-radius: 10px; 
+            font-weight: 900; 
+            cursor: pointer; 
+            transition: 0.4s; 
+            font-size: 1rem;
+            box-shadow: 0 5px 15px rgba(0,229,255,0.3);
+            width: 100%;
+        }
+
+        @media (min-width: 600px) {
+            .btn-copy { width: auto; padding: 20px 40px; border-radius: 12px; font-size: 1.1rem; }
+        }
+        
+        .btn-copy:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 8px 25px rgba(0,229,255,0.5); }
+
+        .nav-buttons { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 15px; }
+        .btn-nav { 
+            background: #222; 
+            color: #fff; 
+            border: 1px solid #333; 
+            padding: 8px 15px; 
+            border-radius: 8px; 
+            font-size: 0.85rem; 
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .time { font-size: 0.8rem; color: #444; text-align: right; margin-top: 15px; font-weight: bold; }
+        
+        .status-msg { 
+            text-align: center; 
+            color: #333; 
+            padding: 40px 20px; 
+            border: 2px dashed #1a1a1a; 
+            border-radius: 20px; 
+            font-size: 1.1rem; 
+            margin-top: 30px;
+            animation: breath 3s infinite;
+        }
+
+        @keyframes breath {
+            0% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+            100% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 PANEL DE OTP</h1>
+        <div class="creator-tag">CREADOR: PAUDRONIX GT</div>
+        <div class="nav-buttons" style="margin-top: 25px;">
+            {% if session.get('logged_in') %}
+            <a href="/admin" class="btn-nav" style="color: #f9d423; border-color: #f9d423;">⚙️ ADMIN</a>
+            {% endif %}
+            <button id="btn-refresh" class="btn-nav" style="color: #00e5ff; border-color: #00e5ff;">🔄 HISTORIAL</button>
+            <button onclick="location.reload()" class="btn-nav" style="color: #ff3d00; border-color: #ff3d00;">🔌 RECARGAR</button>
+            <a href="/logout" class="btn-nav" style="color: #666; border-color: #333;">🚪 CERRAR SESIÓN</a>
+        </div>
+    </div>
+
+    <div class="container" id="otp-list">
+        <div class="status-msg" id="empty-state">
+            <p>🛰️ ESCANEANDO CUENTAS GMAIL...<br><span style="font-size: 0.8rem; color: #333;">Los códigos aparecerán aquí al instante.</span></p>
+        </div>
+    </div>
+
+    <script>
+        const socket = io({
+            transports: ['websocket', 'polling'],
+            reconnection: true
+        });
+
+        socket.on('connect', () => {
+            console.log('✅ PANEL CONECTADO');
+            socket.emit('get_history');
+        });
+
+        document.getElementById('btn-refresh').onclick = () => {
+            socket.emit('get_history');
+        };
+
+        socket.on('history_data', (data) => {
+            const list = document.getElementById('otp-list');
+            const emptyState = document.getElementById('empty-state');
+            if (emptyState && data.length > 0) emptyState.remove();
+            
+            list.innerHTML = '';
+            const recentHistory = data.slice(0, 4);
+            recentHistory.reverse().forEach(item => renderCard(item, false));
+        });
+
+        socket.on('new_otp', function(data) {
+            console.log('✨ RECIBIDO:', data);
+            const list = document.getElementById('otp-list');
+            const existingCodes = Array.from(list.getElementsByClassName('otp-code')).map(el => el.innerText);
+            if (existingCodes.includes(data.code)) return;
+
+            const emptyState = document.getElementById('empty-state');
+            if (emptyState) emptyState.remove();
+            
+            const currentCards = list.getElementsByClassName('card');
+            if (currentCards.length >= 4) {
+                currentCards[currentCards.length - 1].remove();
+            }
+
+            renderCard(data, true);
+        });
+
+        function renderCard(data, isNew) {
+            const list = document.getElementById('otp-list');
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.timestamp = data.time || new Date().toISOString();
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <div>
+                        <div class="sender">${data.sender}</div>
+                        <div class="account">${data.account}</div>
+                    </div>
+                </div>
+                <div class="subject">${data.subject}</div>
+                <div class="otp-box">
+                    <div class="otp-code">${data.code}</div>
+                    <button class="btn-copy" onclick="copyCode('${data.code}', this)">COPIAR</button>
+                </div>
+                <div class="time" style="text-align: right; margin-top: 15px; color: #00e5ff; font-size: 1.2rem;">🕒 ${data.time}</div>
+            `;
+            list.insertBefore(card, list.firstChild);
+        }
+
+        // Ya no necesitamos la función de tiempo relativo
+        function updateRelativeTime() {}
+
+        // Actualizar todos los tiempos cada 30 segundos
+        setInterval(() => {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                const timeEl = card.querySelector('.time');
+                if (timeEl && card.dataset.timestamp) {
+                    updateRelativeTime(card.dataset.timestamp, timeEl.id);
+                }
+            });
+        }, 30000);
+
+        function copyCode(code, btn) {
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = btn.innerText;
+                btn.innerText = '¡COPIADO!';
+                btn.style.background = '#4caf50';
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

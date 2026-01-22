@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Gestión de Cuentas</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #060606; color: #fff; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .card { background: #111; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #222; }
+        h1 { color: #00e5ff; }
+        input { background: #000; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 5px; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
+        button { background: #00e5ff; color: #000; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .account-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #222; }
+        .delete-btn { background: #ff3d00; color: #fff; padding: 5px 10px; font-size: 0.8rem; }
+        .nav { margin-bottom: 20px; }
+        .nav a { color: #00e5ff; text-decoration: none; margin-right: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">← Volver al Panel OTP</a>
+            <a href="/logout" style="color: #ff3d00;">Cerrar Sesión</a>
+        </div>
+        <h1>Administración de Cuentas</h1>
+        
+        <div class="card">
+            <h3>Gestionar Usuarios (Acceso al Panel)</h3>
+            <form action="/admin/add_user" method="POST">
+                <input type="text" name="username" placeholder="Nombre de Usuario" required>
+                <input type="text" name="password" placeholder="Contraseña para Usuario" required>
+                <input type="number" name="days" placeholder="Días de acceso (ej: 30)" required min="1">
+                <button type="submit" style="background: #f9d423;">CREAR/ACTUALIZAR USUARIO</button>
+            </form>
+            <hr style="border: 0; border-top: 1px solid #222; margin: 20px 0;">
+            {% for u in users %}
+            <div class="account-item">
+                <div>
+                    <strong>{{ u.username }}</strong><br>
+                    <span style="color: #666; font-size: 0.8rem;">Pass: {{ u.password }}</span><br>
+                    <span style="color: #ff3d00; font-size: 0.8rem;">Expira: {{ u.expires_at }}</span>
+                </div>
+                <form action="/admin/delete_user" method="POST" style="margin: 0;">
+                    <input type="hidden" name="username" value="{{ u.username }}">
+                    <button type="submit" class="delete-btn">ELIMINAR</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="card">
+            <h3>Agregar Nueva Cuenta (Gmail)</h3>
+            <form action="/admin/add" method="POST">
+                <input type="email" name="email" placeholder="Correo Gmail" required>
+                <input type="text" name="app_password" placeholder="Contraseña de Aplicación" required>
+                <button type="submit">AGREGAR CUENTA</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>Cuentas Registradas</h3>
+            {% for account in accounts %}
+            <div class="account-item">
+                <div>
+                    <strong>{{ account.email }}</strong><br>
+                    <span style="color: #666; font-size: 0.8rem;">Pass: {{ account.app_password }}</span>
+                </div>
+                <form action="/admin/delete" method="POST" style="margin: 0;">
+                    <input type="hidden" name="email" value="{{ account.email }}">
+                    <button type="submit" class="delete-btn">ELIMINAR</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

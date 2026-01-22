@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - OTP Pro</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0b0b0b; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .login-card { background: #111; padding: 30px; border-radius: 20px; border: 1px solid #222; width: 400px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .tabs { display: flex; border-bottom: 1px solid #333; margin-bottom: 25px; }
+        .tab { flex: 1; padding: 15px; cursor: pointer; color: #666; font-weight: bold; border-bottom: 3px solid transparent; transition: 0.3s; }
+        .tab.active { color: #00e5ff; border-bottom-color: #00e5ff; }
+        h2 { color: #00e5ff; margin: 20px 0; font-size: 1.8rem; }
+        .form-container { display: none; }
+        .form-container.active { display: block; }
+        input { background: #000; border: 1px solid #333; color: #fff; padding: 15px; border-radius: 10px; width: 100%; margin-bottom: 15px; box-sizing: border-box; font-size: 1rem; }
+        button { background: #00e5ff; color: #000; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: 900; cursor: pointer; font-size: 1rem; transition: 0.3s; }
+        button:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(0,229,255,0.4); }
+        .error { color: #ff3d00; margin-bottom: 15px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="tabs">
+            <div class="tab active" onclick="showForm('user')">Usuario</div>
+            <div class="tab" onclick="showForm('admin')">Admin</div>
+        </div>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <div id="user-form" class="form-container active">
+            <h2>Ingreso de Usuario</h2>
+            <form action="/user_login" method="POST">
+                <input type="text" name="username" placeholder="Usuario" required>
+                <input type="password" name="password" placeholder="Contraseña" required>
+                <button type="submit">ENTRAR</button>
+            </form>
+        </div>
+
+        <div id="admin-form" class="form-container">
+            <h2>Ingreso Admin</h2>
+            <form action="/login" method="POST">
+                <input type="text" name="username" placeholder="Usuario" required>
+                <input type="password" name="password" placeholder="Contraseña" required>
+                <button type="submit" style="background: #f9d423;">ACCEDER</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showForm(type) {
+            document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            
+            document.getElementById(type + '-form').classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
